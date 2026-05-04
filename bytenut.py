@@ -172,7 +172,7 @@ class BytenutRenewal:
                                 time.sleep(2)
 
                                 # ===== Watch Ad =====
-                                watch_ad_selector = '//button[.//span[text()="Watch Ad"]]'
+                                watch_ad_selector = '//button[contains(., "Watch")]'
 
                                 self.log("🎬 查找 Watch Ad...")
                                 sb.wait_for_element_visible(watch_ad_selector, timeout=15)
