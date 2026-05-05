@@ -242,7 +242,7 @@ class BytenutRenewal:
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 服务器运行时间剩余: {remaining_text}"
+                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
 
                             else:
@@ -254,7 +254,7 @@ class BytenutRenewal:
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 服务器运行时间剩余: {remaining_text}"
+                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
                                 continue
 
