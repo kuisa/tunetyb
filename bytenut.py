@@ -80,6 +80,26 @@ class BytenutRenewal:
         except Exception as e:
             self.log(f"TG失败: {e}")
 
+    # ================= 新增：统一获取剩余时间 =================
+    def get_remaining_time(self, sb):
+        remaining_text = "未知"
+        try:
+            sb.wait_for_element_visible("div.countdown-clock", timeout=15)
+            time.sleep(2)
+
+            raw_text = sb.get_text("div.countdown-clock")
+
+            match = re.search(r"\d{1,2}:\d{2}", raw_text)
+            if match:
+                remaining_text = match.group(0)
+            else:
+                remaining_text = raw_text.strip()
+
+        except Exception as e:
+            self.log(f"⚠️ 获取剩余时间失败: {e}")
+
+        return remaining_text
+
     def run(self):
 
         timestamp = time.strftime('%H:%M:%S')
@@ -185,7 +205,6 @@ class BytenutRenewal:
 
                                 time.sleep(3)
 
-                                # ===== 处理广告页 =====
                                 new_windows = sb.driver.window_handles
 
                                 if len(new_windows) > len(existing_windows):
@@ -217,15 +236,25 @@ class BytenutRenewal:
                                 sb.click(claim_selector)
                                 self.log("🎁 已领取奖励")
 
+                                # ===== 新增：获取剩余时间 =====
+                                time.sleep(3)
+                                remaining_text = self.get_remaining_time(sb)
+                                self.log(f"🕒 剩余时间: {remaining_text}")
+
                                 self.results.append(
-                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA}"
+                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 剩余: {remaining_text}"
                                 )
 
                             else:
                                 self.log("⏳ 冷却中")
 
+                                # ===== 新增：冷却也获取 =====
+                                time.sleep(2)
+                                remaining_text = self.get_remaining_time(sb)
+                                self.log(f"🕒 剩余时间: {remaining_text}")
+
                                 self.results.append(
-                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA}"
+                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 剩余: {remaining_text}"
                                 )
                                 continue
 
