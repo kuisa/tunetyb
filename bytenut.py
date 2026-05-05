@@ -236,13 +236,13 @@ class BytenutRenewal:
                                 sb.click(claim_selector)
                                 self.log("🎁 已领取奖励")
 
-                                # ===== 新增：获取剩余时间 =====
+                                # ===== 获取剩余时间 =====
                                 time.sleep(3)
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 剩余: {remaining_text}"
+                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 服务器运行时间剩余: {remaining_text}"
                                 )
 
                             else:
@@ -254,7 +254,7 @@ class BytenutRenewal:
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 剩余: {remaining_text}"
+                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 服务器运行时间剩余: {remaining_text}"
                                 )
                                 continue
 
