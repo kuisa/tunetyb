@@ -143,7 +143,7 @@ class BytenutRenewal:
                     self.log("📂 进入服务器页面")
                     sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
 
-                    time.sleep(5)
+                    time.sleep(10)
 
                     self.log("🖱️ RENEW SERVER")
                     sb.click('//li[contains(., "RENEW SERVER")]')
