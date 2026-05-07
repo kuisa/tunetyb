@@ -256,27 +256,16 @@ class BytenutRenewal:
 
                                 time.sleep(3)
 
-                                watch_ad_selector = (
-                                    '//button[contains(@class,"el-button--primary")]'
-                                    '[.//span[contains(normalize-space(),"Watch Ad")]]'
-                                )
-                                
-                                sb.wait_for_element_present(watch_ad_selector, timeout=20)
-
-                                elem = sb.find_element(watch_ad_selector)
-
-                                sb.driver.execute_script("""
-                                arguments[0].scrollIntoView({block:'center'});
-                                arguments[0].click();
-                                """, elem)
-                                
+                                # 点击 Watch Ad
+                                sb.execute_script("""
+                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
+                                    if(btn) btn.click();
+                                """)
+                                time.sleep(3)
+                                self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
+            
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
-
-                                sb.click(watch_ad_selector)
-                                self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
-
-                                time.sleep(3)
 
                                 new_windows = sb.driver.window_handles
 
