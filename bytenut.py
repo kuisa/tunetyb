@@ -313,73 +313,85 @@ class BytenutRenewal:
 
                     self.step_shot(sb, USERNAME, "after_captcha")
 
-                    # ================= Extend =================
+                    # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
 
                     extend_selector = '//button[contains(., "Extend")]'
 
-                    if sb.is_element_present(extend_selector):
+                    try:
+                        if sb.is_element_present(extend_selector):
 
-                        if sb.is_element_enabled(extend_selector):
+                            if sb.is_element_enabled(extend_selector):
 
-                            sb.click(extend_selector)
-                            time.sleep(2)
+                                sb.click(extend_selector)
+                                self.log("➡️ 已点击 Extend")
 
-                            watch_ad_bonus_selector = (
-                                '//button[contains(., "Watch Ad") and contains(., "+180")]'
-                            )
+                                time.sleep(2)
 
-                            self.log("🎬 查找 Watch Ad +180min...")
-                            sb.wait_for_element_visible(
-                                watch_ad_bonus_selector,
-                                timeout=20
-                            )
+                                watch_ad_bonus_selector = (
+                                  '//button[contains(., "Watch Ad") and contains(., "+180")]'
+                                )
 
-                            sb.click(watch_ad_bonus_selector)
+                                self.log("🎬 查找 Watch Ad +180min...")
+                                sb.wait_for_element_visible(
+                                  watch_ad_bonus_selector,
+                                  timeout=20
+                                )
 
-                            time.sleep(3)
-                            
-                            # 点击 Watch Ad
-                            self.log("🎬 点击 Watch Ad 按钮...")
-                            sb.execute_script("""
-                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
-                                if(btn) btn.click();
-                            """)
-                            time.sleep(3)
-                            
-                            original_window = sb.driver.current_window_handle
+                                self.log("➡️ 已点击 Watch Ad +180min")
+                                sb.click(watch_ad_bonus_selector)
 
-                            if len(sb.driver.window_handles) > 1:
-                                for handle in sb.driver.window_handles:
-                                    if handle != original_window:
-                                        sb.driver.switch_to.window(handle)
+                                time.sleep(3)
+
+                                # ===== Watch Ad =====
+                                watch_ad_selector = '//button[contains(., "Watch")]'
+
+                                self.log("🎬 查找 Watch Ad...")
+                                sb.wait_for_element_visible(watch_ad_selector, timeout=15)
+
+                                main_window = sb.driver.current_window_handle
+                                existing_windows = sb.driver.window_handles
+
+                                sb.click(watch_ad_selector)
+                                self.log("🖱️ 点击 Watch Ad")
+
+                                time.sleep(3)
+
+                                new_windows = sb.driver.window_handles
+
+                                if len(new_windows) > len(existing_windows):
+                                    for w in new_windows:
+                                        if w not in existing_windows:
+                                            sb.driver.switch_to.window(w)
+                                            self.log("🌐 切换到广告页")
+
+                                            time.sleep(3)
+                                            sb.driver.close()
+                                            self.log("❌ 已关闭广告页")
+                                            break
+
+                                sb.driver.switch_to.window(main_window)
+                                self.log("↩️ 返回主页面")
+
+                                # ===== Claim Reward =====
+                                self.log("⏳ 等待 Claim Reward...")
+
+                                claim_selector = '//button[contains(., "Claim")]'
+
+                                sb.wait_for_element_visible(claim_selector, timeout=20)
+
+                                for _ in range(10):
+                                    if sb.is_element_enabled(claim_selector):
                                         break
+                                    time.sleep(1)
 
-                                time.sleep(5)
-
-                                if len(sb.driver.window_handles) > 1:
-                                    sb.driver.close()
-
-                                sb.driver.switch_to.window(original_window)
-
-                            # ===== Claim Reward =====
-                            self.log("⏳ 点击 Claim Reward...")
-
-                            claim_selector = '//button[.//span[contains(text(), "Claim Reward")]]'
-
-                            sb.wait_for_element_visible(claim_selector, timeout=25)
-
-                            try:
-                                sb.scroll_to(claim_selector)
-                            except:
-                                pass
-
-                            try:
                                 sb.click(claim_selector)
-                            except:
-                                sb.js_click(claim_selector)
+                                self.log("🎁 已领取奖励")
 
-                            self.log("🎁 Claim Reward 点击完成")
+                                # ===== 获取剩余时间 =====
+                                time.sleep(3)
+                                remaining_text = self.get_remaining_time(sb)
+                                self.log(f"🕒 剩余时间: {remaining_text}")
 
                             self.step_shot(sb, USERNAME, "after_claim")
 
