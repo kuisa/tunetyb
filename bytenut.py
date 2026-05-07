@@ -301,7 +301,7 @@ class BytenutRenewal:
                             f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                         )
 
-                    else:
+                else:
                         self.log("⏳ 冷却中")
                         # ===== 新增：冷却也获取 =====
                         time.sleep(2)
