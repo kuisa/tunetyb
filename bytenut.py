@@ -219,8 +219,17 @@ class BytenutRenewal:
                     time.sleep(10)
 
                     sb.click('//li[contains(., "RENEW SERVER")]')
+                    self.step_shot(sb, USERNAME, "已点击 RENEW SERVER 按钮进入续费页面")
                     time.sleep(5)
 
+                    try:
+                        sb.uc_gui_click_captcha()
+                        sb.uc_gui_handle_captcha()
+                    except:
+                        pass
+
+                    time.sleep(5)
+                    
                     # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
 
