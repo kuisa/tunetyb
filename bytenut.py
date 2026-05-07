@@ -31,13 +31,21 @@ URL_LOGIN_PANEL = "https://www.bytenut.com/auth/login"
 # ================= 解析多账号 =================
 def parse_accounts(accounts_str):
     accounts = []
+
     if not accounts_str:
         return accounts
 
     for item in accounts_str.split("|"):
         try:
             u, p, n, a = item.split(",")
-            accounts.append((u.strip(), p.strip(), n.strip(), a.strip()))
+
+            accounts.append((
+                u.strip(),
+                p.strip(),
+                n.strip(),
+                a.strip()
+            ))
+
         except:
             print(f"[WARN] 格式错误: {item}")
 
@@ -48,48 +56,105 @@ def parse_accounts(accounts_str):
 class BytenutRenewal:
 
     def __init__(self):
+
         self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-        self.screenshot_dir = os.path.join(self.BASE_DIR, "artifacts")
+
+        self.screenshot_dir = os.path.join(
+            self.BASE_DIR,
+            "artifacts"
+        )
+
         os.makedirs(self.screenshot_dir, exist_ok=True)
 
         self.results = []
 
     def log(self, msg):
+
         timestamp = time.strftime('%H:%M:%S')
+
         print(f"[{timestamp}] [INFO] {msg}", flush=True)
 
+    # ================= TG =================
     def send_telegram_notify(self, message, photo_path=None):
+
         if not TG_TOKEN or not TG_CHAT_ID:
             self.log("⚠️ 未配置 TG，跳过")
             return
 
         try:
+
             if photo_path and os.path.exists(photo_path):
+
                 url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
+
                 with open(photo_path, "rb") as f:
-                    requests.post(url, data={
-                        "chat_id": TG_CHAT_ID,
-                        "caption": message
-                    }, files={"photo": f})
+
+                    requests.post(
+                        url,
+                        data={
+                            "chat_id": TG_CHAT_ID,
+                            "caption": message
+                        },
+                        files={"photo": f}
+                    )
+
             else:
+
                 url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-                requests.post(url, data={
-                    "chat_id": TG_CHAT_ID,
-                    "text": message
-                })
+
+                requests.post(
+                    url,
+                    data={
+                        "chat_id": TG_CHAT_ID,
+                        "text": message
+                    }
+                )
+
         except Exception as e:
             self.log(f"TG失败: {e}")
 
+    # ================= 新增：步骤截图 =================
+    def step_shot(self, sb, username, step_name):
+
+        try:
+
+            ts = int(time.time())
+
+            shot = os.path.join(
+                self.screenshot_dir,
+                f"{username}_{step_name}_{ts}.png"
+            )
+
+            sb.save_screenshot(shot)
+
+            self.send_telegram_notify(
+                f"📸 {username} | {step_name}",
+                shot
+            )
+
+            self.log(f"📸 已发送截图: {step_name}")
+
+        except Exception as e:
+            self.log(f"⚠️ 截图失败: {e}")
+
     # ================= 获取剩余时间 =================
     def get_remaining_time(self, sb):
+
         remaining_text = "未知"
+
         try:
-            sb.wait_for_element_visible("div.countdown-clock", timeout=15)
+
+            sb.wait_for_element_visible(
+                "div.countdown-clock",
+                timeout=15
+            )
+
             time.sleep(2)
 
             raw_text = sb.get_text("div.countdown-clock")
 
             match = re.search(r"\d{1,2}:\d{2}", raw_text)
+
             if match:
                 remaining_text = match.group(0)
             else:
@@ -103,6 +168,7 @@ class BytenutRenewal:
     def run(self):
 
         timestamp = time.strftime('%H:%M:%S')
+
         self.log(f"🚀 开始执行 ByteNut 保活 {timestamp}")
 
         accounts = parse_accounts(ACCOUNTS)
@@ -115,10 +181,16 @@ class BytenutRenewal:
 
         for idx, (USERNAME, PASSWORD, NUM, AREA) in enumerate(accounts, 1):
 
-            URL_SERVER_PANEL = f"https://www.bytenut.com/free-gamepanel/{NUM}"
+            URL_SERVER_PANEL = (
+                f"https://www.bytenut.com/free-gamepanel/{NUM}"
+            )
 
             self.log("=" * 60)
-            self.log(f"🚀 [{idx}] 开始账号: {USERNAME} | Server {NUM}")
+
+            self.log(
+                f"🚀 [{idx}] 开始账号: {USERNAME} | Server {NUM}"
+            )
+
             self.log("=" * 60)
 
             with SB(
@@ -132,16 +204,26 @@ class BytenutRenewal:
             ) as sb:
 
                 try:
+
                     # ================= IP检测 =================
                     self.log("🌍 检测IP...")
+
                     try:
+
                         sb.open("https://api.ipify.org?format=json")
+
                         ip_val = json.loads(
-                            re.search(r'\{.*\}', sb.get_text("body")).group(0)
+                            re.search(
+                                r'\{.*\}',
+                                sb.get_text("body")
+                            ).group(0)
                         ).get("ip", "Unknown")
 
                         parts = ip_val.split(".")
-                        self.log(f"IP: {parts[0]}.{parts[1]}.***.{parts[-1]}")
+
+                        self.log(
+                            f"IP: {parts[0]}.{parts[1]}.***.{parts[-1]}"
+                        )
 
                     except:
                         self.log("⚠️ IP跳过")
@@ -153,6 +235,8 @@ class BytenutRenewal:
                         URL_LOGIN_PANEL,
                         reconnect_time=5
                     )
+
+                    self.step_shot(sb, USERNAME, "login_page")
 
                     sb.wait_for_element_visible(
                         'input[placeholder="Username"]',
@@ -169,11 +253,15 @@ class BytenutRenewal:
                         PASSWORD
                     )
 
+                    self.step_shot(sb, USERNAME, "filled_login")
+
                     self.log("🖱️ 登录")
 
                     sb.click('//button[contains(., "Sign In")]')
 
                     time.sleep(10)
+
+                    self.step_shot(sb, USERNAME, "after_login")
 
                     try:
                         sb.click('//button[contains(., "Consent")]')
@@ -190,11 +278,15 @@ class BytenutRenewal:
 
                     time.sleep(10)
 
+                    self.step_shot(sb, USERNAME, "server_page")
+
                     self.log("🖱️ RENEW SERVER")
 
                     sb.click('//li[contains(., "RENEW SERVER")]')
 
                     time.sleep(3)
+
+                    self.step_shot(sb, USERNAME, "renew_menu")
 
                     try:
                         sb.uc_gui_click_captcha()
@@ -204,16 +296,28 @@ class BytenutRenewal:
 
                     time.sleep(5)
 
+                    self.step_shot(sb, USERNAME, "after_captcha")
+
                     # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
 
-                    extend_selector = '//button[contains(., "Extend")]'
+                    extend_selector = (
+                        '//button[contains(., "Extend")]'
+                    )
 
                     try:
 
                         if sb.is_element_present(extend_selector):
 
-                            if sb.is_element_enabled(extend_selector):
+                            if sb.is_element_enabled(
+                                extend_selector
+                            ):
+
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "before_extend_click"
+                                )
 
                                 sb.click(extend_selector)
 
@@ -221,19 +325,33 @@ class BytenutRenewal:
 
                                 time.sleep(2)
 
-                                # ===== 新增：先点 Watch Ad +180min =====
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "after_extend_click"
+                                )
+
+                                # ===== Watch Ad +180 =====
                                 watch_ad_bonus_selector = (
                                     '//button[contains(., "Watch Ad") and contains(., "+180")]'
                                 )
 
-                                self.log("🎬 查找 Watch Ad +180min...")
+                                self.log(
+                                    "🎬 查找 Watch Ad +180min..."
+                                )
 
                                 sb.wait_for_element_visible(
                                     watch_ad_bonus_selector,
                                     timeout=20
                                 )
 
-                                # ===== 新增：处理 Cookie 弹窗 =====
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "watch_ad_bonus_visible"
+                                )
+
+                                # ===== Cookie =====
                                 try:
 
                                     cookie_btns = [
@@ -248,9 +366,18 @@ class BytenutRenewal:
                                         if sb.is_element_present(btn):
 
                                             try:
+
+                                                self.step_shot(
+                                                    sb,
+                                                    USERNAME,
+                                                    "cookie_popup"
+                                                )
+
                                                 sb.click(btn)
 
-                                                self.log("🍪 已关闭 Cookie 弹窗")
+                                                self.log(
+                                                    "🍪 已关闭 Cookie 弹窗"
+                                                )
 
                                                 time.sleep(2)
 
@@ -259,7 +386,6 @@ class BytenutRenewal:
                                             except:
                                                 pass
 
-                                    # 强制隐藏 Cookie 层
                                     sb.execute_script("""
                                         let el = document.querySelector('#ez-cookie-dialog-wrapper');
                                         if (el) {
@@ -268,25 +394,52 @@ class BytenutRenewal:
                                     """)
 
                                 except Exception as e:
-                                    self.log(f"⚠️ Cookie处理失败: {e}")
+                                    self.log(
+                                        f"⚠️ Cookie处理失败: {e}"
+                                    )
 
-                                # ===== 点击 Watch Ad +180min =====
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "before_watch_ad_bonus_click"
+                                )
+
+                                # ===== 点击 Watch Ad +180 =====
                                 try:
-                                    sb.scroll_to(watch_ad_bonus_selector)
+                                    sb.scroll_to(
+                                        watch_ad_bonus_selector
+                                    )
                                 except:
                                     pass
 
                                 try:
-                                    sb.click(watch_ad_bonus_selector)
-                                except:
-                                    sb.js_click(watch_ad_bonus_selector)
 
-                                self.log("🖱️ 已点击 Watch Ad +180min")
+                                    sb.click(
+                                        watch_ad_bonus_selector
+                                    )
+
+                                except:
+
+                                    sb.js_click(
+                                        watch_ad_bonus_selector
+                                    )
+
+                                self.log(
+                                    "🖱️ 已点击 Watch Ad +180min"
+                                )
 
                                 time.sleep(3)
 
-                                # ===== 原有 Watch Ad =====
-                                watch_ad_selector = '//button[contains(., "Watch")]'
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "after_watch_ad_bonus_click"
+                                )
+
+                                # ===== 原 Watch =====
+                                watch_ad_selector = (
+                                    '//button[contains(., "Watch")]'
+                                )
 
                                 self.log("🎬 查找 Watch Ad...")
 
@@ -295,8 +448,19 @@ class BytenutRenewal:
                                     timeout=15
                                 )
 
-                                main_window = sb.driver.current_window_handle
-                                existing_windows = sb.driver.window_handles
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "watch_button_visible"
+                                )
+
+                                main_window = (
+                                    sb.driver.current_window_handle
+                                )
+
+                                existing_windows = (
+                                    sb.driver.window_handles
+                                )
 
                                 sb.click(watch_ad_selector)
 
@@ -304,7 +468,15 @@ class BytenutRenewal:
 
                                 time.sleep(3)
 
-                                new_windows = sb.driver.window_handles
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "after_watch_click"
+                                )
+
+                                new_windows = (
+                                    sb.driver.window_handles
+                                )
 
                                 if len(new_windows) > len(existing_windows):
 
@@ -314,13 +486,23 @@ class BytenutRenewal:
 
                                             sb.driver.switch_to.window(w)
 
-                                            self.log("🌐 切换到广告页")
+                                            self.log(
+                                                "🌐 切换到广告页"
+                                            )
+
+                                            self.step_shot(
+                                                sb,
+                                                USERNAME,
+                                                "ad_page"
+                                            )
 
                                             time.sleep(3)
 
                                             sb.driver.close()
 
-                                            self.log("❌ 已关闭广告页")
+                                            self.log(
+                                                "❌ 已关闭广告页"
+                                            )
 
                                             break
 
@@ -328,19 +510,37 @@ class BytenutRenewal:
 
                                 self.log("↩️ 返回主页面")
 
-                                # ===== Claim Reward =====
-                                self.log("⏳ 等待 Claim Reward...")
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "back_main_page"
+                                )
 
-                                claim_selector = '//button[contains(., "Claim")]'
+                                # ===== Claim =====
+                                self.log(
+                                    "⏳ 等待 Claim Reward..."
+                                )
+
+                                claim_selector = (
+                                    '//button[contains(., "Claim")]'
+                                )
 
                                 sb.wait_for_element_visible(
                                     claim_selector,
                                     timeout=20
                                 )
 
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "claim_visible"
+                                )
+
                                 for _ in range(10):
 
-                                    if sb.is_element_enabled(claim_selector):
+                                    if sb.is_element_enabled(
+                                        claim_selector
+                                    ):
                                         break
 
                                     time.sleep(1)
@@ -349,12 +549,28 @@ class BytenutRenewal:
 
                                 self.log("🎁 已领取奖励")
 
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "after_claim"
+                                )
+
                                 # ===== 获取剩余时间 =====
                                 time.sleep(3)
 
-                                remaining_text = self.get_remaining_time(sb)
+                                remaining_text = (
+                                    self.get_remaining_time(sb)
+                                )
 
-                                self.log(f"🕒 剩余时间: {remaining_text}")
+                                self.log(
+                                    f"🕒 剩余时间: {remaining_text}"
+                                )
+
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "final_time"
+                                )
 
                                 self.results.append(
                                     f"✅ 成功 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
@@ -366,9 +582,19 @@ class BytenutRenewal:
 
                                 time.sleep(2)
 
-                                remaining_text = self.get_remaining_time(sb)
+                                remaining_text = (
+                                    self.get_remaining_time(sb)
+                                )
 
-                                self.log(f"🕒 剩余时间: {remaining_text}")
+                                self.log(
+                                    f"🕒 剩余时间: {remaining_text}"
+                                )
+
+                                self.step_shot(
+                                    sb,
+                                    USERNAME,
+                                    "cooldown"
+                                )
 
                                 self.results.append(
                                     f"⏳ 冷却 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
@@ -380,6 +606,12 @@ class BytenutRenewal:
 
                             self.log("⚠️ 未找到按钮")
 
+                            self.step_shot(
+                                sb,
+                                USERNAME,
+                                "extend_not_found"
+                            )
+
                             self.results.append(
                                 f"⚠️ 未找到 | 账号 {USERNAME} | {AREA}"
                             )
@@ -390,6 +622,12 @@ class BytenutRenewal:
 
                         self.log(f"⚠️ Extend异常: {e}")
 
+                        self.step_shot(
+                            sb,
+                            USERNAME,
+                            "extend_error"
+                        )
+
                         self.results.append(
                             f"❌ Extend异常 | 账号 {USERNAME} | {AREA}"
                         )
@@ -398,7 +636,9 @@ class BytenutRenewal:
 
                     time.sleep(5)
 
-                    shot = f"{self.screenshot_dir}/ok_{USERNAME}.png"
+                    shot = (
+                        f"{self.screenshot_dir}/ok_{USERNAME}.png"
+                    )
 
                     sb.save_screenshot(shot)
 
@@ -408,10 +648,18 @@ class BytenutRenewal:
 
                     self.log(f"❌ 失败 {USERNAME}: {e}")
 
-                    err = f"{self.screenshot_dir}/err_{USERNAME}.png"
+                    err = (
+                        f"{self.screenshot_dir}/err_{USERNAME}.png"
+                    )
 
                     try:
                         sb.save_screenshot(err)
+
+                        self.send_telegram_notify(
+                            f"❌ 失败截图 | {USERNAME}",
+                            err
+                        )
+
                     except:
                         pass
 
