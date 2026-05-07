@@ -256,9 +256,20 @@ class BytenutRenewal:
 
                                 time.sleep(3)
 
-                                watch_ad_selector = '//button[contains(., "Watch")]'
-                                sb.wait_for_element_visible(watch_ad_selector, timeout=15)
+                                watch_ad_selector = (
+                                    '//button[contains(@class,"el-button--primary")]'
+                                    '[.//span[contains(normalize-space(),"Watch Ad")]]'
+                                )
+                                
+                                sb.wait_for_element_present(watch_ad_selector, timeout=20)
 
+                                elem = sb.find_element(watch_ad_selector)
+
+                                sb.driver.execute_script("""
+                                arguments[0].scrollIntoView({block:'center'});
+                                arguments[0].click();
+                                """, elem)
+                                
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
 
