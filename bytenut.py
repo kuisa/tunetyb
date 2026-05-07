@@ -205,6 +205,7 @@ class BytenutRenewal:
 
                 try:
 
+                    # ================= 登录 =================
                     self.log("📂 打开登录页")
 
                     sb.uc_open_with_reconnect(
@@ -214,25 +215,27 @@ class BytenutRenewal:
 
                     time.sleep(5)
 
+                    try: 
+                        sb.uc_gui_click_captcha()
+                        sb.uc_gui_handle_captcha()
+                    except:
+                        pass
+
+                    time.sleep(5)
+                    
                     sb.wait_for_element_visible(
                         'input[placeholder="Username"]',
                         timeout=25
                     )
 
-                    sb.type(
-                        'input[placeholder="Username"]',
-                        USERNAME
-                    )
-
-                    sb.type(
-                        'input[placeholder="Password"]',
-                        PASSWORD
-                    )
+                    sb.type('input[placeholder="Username"]', USERNAME)
+                    sb.type('input[placeholder="Password"]', PASSWORD)
 
                     sb.click('//button[contains(., "Sign In")]')
 
                     time.sleep(10)
 
+                    # ================= 服务器 =================
                     sb.uc_open_with_reconnect(
                         URL_SERVER_PANEL,
                         reconnect_time=6
@@ -285,10 +288,10 @@ class BytenutRenewal:
                                 sb.driver.switch_to.window(original_window)
 
                             # =======================
-                            # 🔥 修复点：Claim Reward（已重写）
+                            # 🔥 这里只改 Claim Reward（最小修复）
                             # =======================
 
-                            self.log("🎁 点击 Claim Reward（修复版）")
+                            self.log("⏳ 点击 Claim Reward...")
 
                             claim_selector = (
                                 '//button[contains(@class,"el-button--success")]'
@@ -297,20 +300,20 @@ class BytenutRenewal:
                             )
 
                             try:
-                                sb.wait_for_element_visible(claim_selector, timeout=25)
+                                sb.wait_for_element_visible(claim_selector, timeout=20)
                             except:
                                 pass
 
                             time.sleep(2)
 
                             try:
-                                sb.js_click(claim_selector)
+                                sb.click(claim_selector)
                             except:
                                 try:
-                                    sb.click(claim_selector)
+                                    sb.js_click(claim_selector)
                                 except:
                                     sb.execute_script("""
-                                        let btns = [...document.querySelectorAll('button.el-button--success')];
+                                        let btns = document.querySelectorAll('button.el-button--success');
                                         for (let b of btns) {
                                             if (b.innerText.includes('Claim Reward')) {
                                                 b.click();
@@ -319,7 +322,7 @@ class BytenutRenewal:
                                         }
                                     """)
 
-                            self.log("🎁 Claim Reward 已尝试点击完成")
+                            self.log("🎁 点击 Claim Reward 并领取奖励")
 
                             time.sleep(3)
 
@@ -334,9 +337,6 @@ class BytenutRenewal:
                         else:
                             self.log("⏳ 冷却中")
 
-                    else:
-                        self.log("⚠️ 未找到 Extend")
-
                 except Exception as e:
                     self.log(f"❌ 失败 {USERNAME}: {e}")
 
@@ -346,9 +346,7 @@ class BytenutRenewal:
 
         self.log("📊 汇总")
 
-        final_msg = "\n".join(self.results)
-
-        self.send_telegram_notify(final_msg)
+        self.send_telegram_notify("\n".join(self.results))
 
         self.log("✅ 完成")
 
