@@ -338,7 +338,15 @@ class BytenutRenewal:
                             sb.click(watch_ad_bonus_selector)
 
                             time.sleep(3)
-
+                            
+                            # 点击 Watch Ad
+                            self.log("🎬 点击 Watch Ad 按钮...")
+                            sb.execute_script("""
+                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
+                                if(btn) btn.click();
+                            """)
+                            time.sleep(3)
+                            
                             original_window = sb.driver.current_window_handle
 
                             if len(sb.driver.window_handles) > 1:
@@ -347,26 +355,35 @@ class BytenutRenewal:
                                         sb.driver.switch_to.window(handle)
                                         break
 
-                                time.sleep(12)
+                                time.sleep(5)
 
                                 if len(sb.driver.window_handles) > 1:
                                     sb.driver.close()
 
                                 sb.driver.switch_to.window(original_window)
 
-                            # ===== CLAIM（未修改原逻辑）=====
+                            # ===== Claim Reward =====
                             self.log("⏳ 点击 Claim Reward...")
 
-                            sb.execute_script("""
-                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
-                                if(btn) btn.click();
-                            """)
+                            claim_selector = '//button[.//span[contains(text(), "Claim Reward")]]'
 
-                            self.log("🎁 点击 Claim Reward 并领取奖励")
+                            sb.wait_for_element_visible(claim_selector, timeout=25)
+
+                            try:
+                                sb.scroll_to(claim_selector)
+                            except:
+                                pass
+
+                            try:
+                                sb.click(claim_selector)
+                            except:
+                                sb.js_click(claim_selector)
+
+                            self.log("🎁 Claim Reward 点击完成")
 
                             self.step_shot(sb, USERNAME, "after_claim")
 
-                            time.sleep(3)
+                            time.sleep(5)
 
                             remaining_text = self.get_remaining_time(sb)
 
