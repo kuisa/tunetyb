@@ -263,10 +263,65 @@ class BytenutRenewal:
 
                     self.step_shot(sb, USERNAME, "after_login")
 
+                    # ===== Cookie =====
                     try:
-                        sb.click('//button[contains(., "Consent")]')
-                    except:
-                        pass
+                        cookie_btns = [
+                             '//button[contains(., "Continue with Recommended Cookies")]',
+                             '//button[contains(., "Recommended Cookies")]',
+                             '//button[contains(., "Accept")]',
+                             '//button[contains(., "I Agree")]',
+                             '//button[contains(., "Consent")]',
+                             '//button[contains(., "Got it")]',
+                             ]
+
+                        for btn in cookie_btns:
+
+                            if sb.is_element_present(btn):
+                                try:
+                                     self.step_shot(
+                                     sb,
+                                     USERNAME,
+                                     "cookie_popup"
+                                     )
+
+                                     try:
+                                         sb.scroll_to(btn)
+                                     except:
+                                         pass
+
+                                     try:
+                                          sb.click(btn)
+                                     except:
+                                          sb.js_click(btn)
+
+                                          self.log(
+                                              "🍪 已关闭 Cookie 弹窗"
+                                          )
+
+                                          time.sleep(2)
+
+                                          break
+
+                                except:
+                                    pass
+
+                        sb.execute_script("""
+                            let el = document.querySelector('#ez-cookie-dialog-wrapper');
+                            if (el) {
+                                el.style.display='none';
+                            }
+                        """)
+
+                    except Exception as e:
+                        self.log(
+                            f"⚠️ Cookie处理失败: {e}"
+                        )
+
+                    self.step_shot(
+                        sb,
+                        USERNAME,
+                        "before_watch_ad_bonus_click"
+                    )
 
                     # ================= 进入服务器 =================
                     self.log("📂 进入服务器页面")
@@ -349,69 +404,6 @@ class BytenutRenewal:
                                     sb,
                                     USERNAME,
                                     "watch_ad_bonus_visible"
-                                )
-
-                                # ===== Cookie =====
-                                try:
-
-                                    cookie_btns = [
-                                        '//button[contains(., "Continue with Recommended Cookies")]',
-                                        '//button[contains(., "Recommended Cookies")]',
-                                        '//button[contains(., "Accept")]',
-                                        '//button[contains(., "I Agree")]',
-                                        '//button[contains(., "Consent")]',
-                                        '//button[contains(., "Got it")]',
-                                    ]
-
-                                    for btn in cookie_btns:
-
-                                        if sb.is_element_present(btn):
-
-                                            try:
-
-                                                self.step_shot(
-                                                    sb,
-                                                    USERNAME,
-                                                    "cookie_popup"
-                                                )
-
-                                                try:
-                                                    sb.scroll_to(btn)
-                                                except:
-                                                    pass
-
-                                                try:
-                                                    sb.click(btn)
-                                                except:
-                                                    sb.js_click(btn)
-
-                                                self.log(
-                                                    "🍪 已关闭 Cookie 弹窗"
-                                                )
-
-                                                time.sleep(2)
-
-                                                break
-
-                                            except:
-                                                pass
-
-                                    sb.execute_script("""
-                                        let el = document.querySelector('#ez-cookie-dialog-wrapper');
-                                        if (el) {
-                                            el.style.display='none';
-                                        }
-                                    """)
-
-                                except Exception as e:
-                                    self.log(
-                                        f"⚠️ Cookie处理失败: {e}"
-                                    )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "before_watch_ad_bonus_click"
                                 )
 
                                 # ===== 点击 Watch Ad +180 =====
