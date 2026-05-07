@@ -464,9 +464,10 @@ class BytenutRenewal:
                                     "after_watch_click"
                                 )
 
-                                new_windows = (
-                                    sb.driver.window_handles
-                                )
+                                main_window = sb.driver.current_window_handle
+                                existing_windows = sb.driver.window_handles
+                                
+                                new_windows = sb.driver.window_handles
 
                                 if len(new_windows) > len(existing_windows):
 
@@ -506,38 +507,20 @@ class BytenutRenewal:
                                     "back_main_page"
                                 )
 
+                                time.sleep(5)
+                                
                                 # ===== Claim =====
                                 self.log(
-                                    "⏳ 等待 Claim Reward..."
+                                    "⏳ 点击 Claim Reward..."
                                 )
 
-                                claim_selector = (
-                                    '//button[contains(., "Claim")]'
-                                )
+                                # 点击 Claim Reward
+                                sb.execute_script("""
+                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
+                                if(btn) btn.click();
+                                """)
 
-                                sb.wait_for_element_visible(
-                                    claim_selector,
-                                    timeout=20
-                                )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "claim_visible"
-                                )
-
-                                for _ in range(10):
-
-                                    if sb.is_element_enabled(
-                                        claim_selector
-                                    ):
-                                        break
-
-                                    time.sleep(1)
-
-                                sb.click(claim_selector)
-
-                                self.log("🎁 已领取奖励")
+                                self.log("🎁 点击 Claim Reward 并领取奖励")
 
                                 self.step_shot(
                                     sb,
