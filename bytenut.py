@@ -280,22 +280,20 @@ class BytenutRenewal:
                                 sb.driver.switch_to.window(main_window)
                                 self.step_shot(sb, USERNAME, "已关闭广告页")
 
-                                claim_selector = '//button[contains(., "Claim")]'
-                                sb.wait_for_element_visible(claim_selector, timeout=20)
-
-                                for _ in range(10):
-                                    if sb.is_element_enabled(claim_selector):
-                                        break
-                                    time.sleep(1)
-
-                                sb.click(claim_selector)
-                                self.step_shot(sb, USERNAME, "")
-
                                 time.sleep(3)
+
+                                sb.execute_script("""
+                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
+                                    if(btn) btn.click();
+                                """)
+                                time.sleep(5)
+                                
+                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
+
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
-                        self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮并记录剩余时间")
+                        self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
 
                         remaining_text = self.get_remaining_time(sb)
 
