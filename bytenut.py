@@ -242,7 +242,7 @@ class BytenutRenewal:
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"✅ 成功 | {USERNAME} | {NUM} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                                    f"✅ 成功 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
 
                             else:
@@ -254,7 +254,7 @@ class BytenutRenewal:
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
-                                    f"⏳ 冷却 | {USERNAME} | {NUM} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                                    f"⏳ 冷却 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
                                 continue
 
@@ -262,7 +262,7 @@ class BytenutRenewal:
                             self.log("⚠️ 未找到按钮")
 
                             self.results.append(
-                                f"⚠️ 未找到 | {USERNAME} | {NUM} | {AREA}"
+                                f"⚠️ 未找到 | 账号 {USERNAME} | {AREA}"
                             )
                             continue
 
@@ -270,7 +270,7 @@ class BytenutRenewal:
                         self.log(f"⚠️ Extend异常: {e}")
 
                         self.results.append(
-                            f"❌ Extend异常 | {USERNAME} | {NUM} | {AREA}"
+                            f"❌ Extend异常 | 账号  {USERNAME} | {AREA}"
                         )
                         continue
 
