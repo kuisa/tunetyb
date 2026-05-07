@@ -464,40 +464,28 @@ class BytenutRenewal:
                                     "after_watch_click"
                                 )
 
-                                main_window = sb.driver.current_window_handle
-                                existing_windows = sb.driver.window_handles
-                                
-                                new_windows = sb.driver.window_handles
-
-                                if len(new_windows) > len(existing_windows):
-
-                                    for w in new_windows:
-
-                                        if w not in existing_windows:
-
-                                            sb.driver.switch_to.window(w)
-
-                                            self.log(
-                                                "🌐 切换到广告页"
-                                            )
-
-                                            self.step_shot(
-                                                sb,
-                                                USERNAME,
-                                                "ad_page"
-                                            )
-
-                                            time.sleep(3)
-
-                                            sb.driver.close()
-
-                                            self.log(
-                                                "❌ 已关闭广告页"
-                                            )
-
+                                # 处理新窗口
+                                original_window = sb.driver.current_window_handle
+                                if len(sb.driver.window_handles) > 1:
+                                    for handle in sb.driver.window_handles:
+                                        if handle != original_window:
+                                            sb.driver.switch_to.window(handle)
                                             break
-
-                                sb.driver.switch_to.window(main_window)
+                                    # 检查是否被扩展拦截（可能没有实际页面，但仍尝试等待）
+                                    try:
+                                        time.sleep(12)
+                                    except:
+                                        pass
+                                    # 如果窗口仍然存在，则关闭它
+                                    if len(sb.driver.window_handles) > 1:
+                                        try:
+                                            sb.driver.close()
+                                        except:
+                                            pass
+                                    sb.driver.switch_to.window(original_window)
+                                    time.sleep(2)
+                                else:
+                                    self.log("未检测到广告窗口，继续...")
 
                                 self.log("↩️ 返回主页面")
 
