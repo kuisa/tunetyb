@@ -205,30 +205,6 @@ class BytenutRenewal:
 
                 try:
 
-                    # ================= IP检测 =================
-                    self.log("🌍 检测IP...")
-
-                    try:
-
-                        sb.open("https://api.ipify.org?format=json")
-
-                        ip_val = json.loads(
-                            re.search(
-                                r'\{.*\}',
-                                sb.get_text("body")
-                            ).group(0)
-                        ).get("ip", "Unknown")
-
-                        parts = ip_val.split(".")
-
-                        self.log(
-                            f"IP: {parts[0]}.{parts[1]}.***.{parts[-1]}"
-                        )
-
-                    except:
-                        self.log("⚠️ IP跳过")
-
-                    # ================= 登录 =================
                     self.log("📂 打开登录页")
 
                     sb.uc_open_with_reconnect(
@@ -237,76 +213,6 @@ class BytenutRenewal:
                     )
 
                     time.sleep(5)
-                    
-                    try:
-                        sb.uc_gui_click_captcha()
-                        sb.uc_gui_handle_captcha()
-                    except:
-                        pass
-
-                    time.sleep(5)
-                    
-                    self.step_shot(sb, USERNAME, "login_page")
-
-                    # ===== Tap Cookie =====
-                    try:
-                        cookie_btns = [
-                             '//button[contains(., "Continue with Recommended Cookies")]',
-                             '//button[contains(., "Recommended Cookies")]',
-                             '//button[contains(., "Accept")]',
-                             '//button[contains(., "I Agree")]',
-                             '//button[contains(., "Consent")]',
-                             '//button[contains(., "Got it")]',
-                             ]
-
-                        for btn in cookie_btns:
-
-                            if sb.is_element_present(btn):
-                                try:
-                                     self.step_shot(
-                                     sb,
-                                     USERNAME,
-                                     "cookie_popup"
-                                     )
-
-                                     try:
-                                         sb.scroll_to(btn)
-                                     except:
-                                         pass
-
-                                     try:
-                                          sb.click(btn)
-                                     except:
-                                          sb.js_click(btn)
-
-                                          self.log(
-                                              "🍪 已关闭 Cookie 弹窗"
-                                          )
-
-                                          time.sleep(2)
-
-                                          break
-
-                                except:
-                                    pass
-
-                        sb.execute_script("""
-                            let el = document.querySelector('#ez-cookie-dialog-wrapper');
-                            if (el) {
-                                el.style.display='none';
-                            }
-                        """)
-
-                    except Exception as e:
-                        self.log(
-                            f"⚠️ Cookie处理失败: {e}"
-                        )
-
-                    self.step_shot(
-                        sb,
-                        USERNAME,
-                        "after_accpet_cookie_tap"
-                    )
 
                     sb.wait_for_element_visible(
                         'input[placeholder="Username"]',
@@ -323,18 +229,9 @@ class BytenutRenewal:
                         PASSWORD
                     )
 
-                    self.step_shot(sb, USERNAME, "filled_login")
-
-                    self.log("🖱️ 登录")
-
                     sb.click('//button[contains(., "Sign In")]')
 
                     time.sleep(10)
-
-                    self.step_shot(sb, USERNAME, "after_login")
-
-                    # ================= 进入服务器 =================
-                    self.log("📂 进入服务器页面")
 
                     sb.uc_open_with_reconnect(
                         URL_SERVER_PANEL,
@@ -343,305 +240,117 @@ class BytenutRenewal:
 
                     time.sleep(10)
 
-                    self.step_shot(sb, USERNAME, "server_page")
-
-                    self.log("🖱️ RENEW SERVER")
-
                     sb.click('//li[contains(., "RENEW SERVER")]')
 
-                    time.sleep(3)
-
-                    self.step_shot(sb, USERNAME, "renew_menu")
-
-                    try:
-                        sb.uc_gui_click_captcha()
-                        sb.uc_gui_handle_captcha()
-                    except:
-                        pass
-
                     time.sleep(5)
 
-                    self.step_shot(sb, USERNAME, "after_captcha")
+                    # ================= Extend =================
+                    extend_selector = '//button[contains(., "Extend")]'
 
-                    # ================= Extend Time =================
-                    self.log("🖱️ 检查 Extend Time 状态...")
+                    if sb.is_element_present(extend_selector):
 
-                    extend_selector = (
-                        '//button[contains(., "Extend")]'
-                    )
+                        if sb.is_element_enabled(extend_selector):
 
-                    try:
+                            sb.click(extend_selector)
 
-                        if sb.is_element_present(extend_selector):
+                            time.sleep(2)
 
-                            if sb.is_element_enabled(
-                                extend_selector
-                            ):
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "before_extend_click"
-                                )
-
-                                sb.click(extend_selector)
-
-                                self.log("➡️ 已点击 Extend")
-
-                                time.sleep(2)
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "after_extend_click"
-                                )
-
-                                # ===== Watch Ad +180 =====
-                                watch_ad_bonus_selector = (
-                                    '//button[contains(., "Watch Ad") and contains(., "+180")]'
-                                )
-
-                                self.log(
-                                    "🎬 查找 Watch Ad +180min..."
-                                )
-
-                                sb.wait_for_element_visible(
-                                    watch_ad_bonus_selector,
-                                    timeout=20
-                                )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "watch_ad_bonus_visible"
-                                )
-
-                                # ===== 点击 Watch Ad +180 =====
-                                try:
-                                    sb.scroll_to(
-                                        watch_ad_bonus_selector
-                                    )
-                                except:
-                                    pass
-
-                                try:
-
-                                    sb.click(
-                                        watch_ad_bonus_selector
-                                    )
-
-                                except:
-
-                                    sb.js_click(
-                                        watch_ad_bonus_selector
-                                    )
-
-                                self.log(
-                                    "🖱️ 已点击 Watch Ad +180min"
-                                )
-
-                                time.sleep(3)
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "after_watch_ad_bonus_click"
-                                )
-
-                                # 点击 Watch Ad
-                                sb.execute_script("""
-                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
-                                    if(btn) btn.click();
-                                """)
-
-                                self.log("🖱️ 点击 Watch Ad")
-
-                                time.sleep(3)
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "after_watch_click"
-                                )
-
-                                # 处理新窗口
-                                original_window = sb.driver.current_window_handle
-                                if len(sb.driver.window_handles) > 1:
-                                    for handle in sb.driver.window_handles:
-                                        if handle != original_window:
-                                            sb.driver.switch_to.window(handle)
-                                            break
-                                    # 检查是否被扩展拦截（可能没有实际页面，但仍尝试等待）
-                                    try:
-                                        time.sleep(12)
-                                    except:
-                                        pass
-                                    # 如果窗口仍然存在，则关闭它
-                                    if len(sb.driver.window_handles) > 1:
-                                        try:
-                                            sb.driver.close()
-                                        except:
-                                            pass
-                                    sb.driver.switch_to.window(original_window)
-                                    time.sleep(2)
-                                else:
-                                    self.log("未检测到广告窗口，继续...")
-
-                                self.log("↩️ 返回主页面")
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "back_main_page"
-                                )
-
-                                time.sleep(5)
-                                
-                                # ===== Claim =====
-                                self.log(
-                                    "⏳ 点击 Claim Reward..."
-                                )
-
-                                # 点击 Claim Reward
-                                sb.execute_script("""
-                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
-                                if(btn) btn.click();
-                                """)
-
-                                self.log("🎁 点击 Claim Reward 并领取奖励")
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "after_claim"
-                                )
-
-                                # ===== 获取剩余时间 =====
-                                time.sleep(3)
-
-                                remaining_text = (
-                                    self.get_remaining_time(sb)
-                                )
-
-                                self.log(
-                                    f"🕒 剩余时间: {remaining_text}"
-                                )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "final_time"
-                                )
-
-                                self.results.append(
-                                    f"✅ 成功 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
-                                )
-
-                            else:
-
-                                self.log("⏳ 冷却中")
-
-                                time.sleep(2)
-
-                                remaining_text = (
-                                    self.get_remaining_time(sb)
-                                )
-
-                                self.log(
-                                    f"🕒 剩余时间: {remaining_text}"
-                                )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "cooldown"
-                                )
-
-                                self.results.append(
-                                    f"⏳ 冷却 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
-                                )
-
-                                continue
-
-                        else:
-
-                            self.log("⚠️ 未找到按钮")
-
-                            self.step_shot(
-                                sb,
-                                USERNAME,
-                                "extend_not_found"
+                            watch_ad_bonus_selector = (
+                                '//button[contains(., "Watch Ad") and contains(., "+180")]'
                             )
+
+                            sb.wait_for_element_visible(
+                                watch_ad_bonus_selector,
+                                timeout=20
+                            )
+
+                            sb.click(watch_ad_bonus_selector)
+
+                            time.sleep(3)
+
+                            # ===== Watch Ad window =====
+                            original_window = sb.driver.current_window_handle
+
+                            if len(sb.driver.window_handles) > 1:
+                                for handle in sb.driver.window_handles:
+                                    if handle != original_window:
+                                        sb.driver.switch_to.window(handle)
+                                        break
+
+                                time.sleep(12)
+
+                                if len(sb.driver.window_handles) > 1:
+                                    sb.driver.close()
+
+                                sb.driver.switch_to.window(original_window)
+
+                            # =======================
+                            # 🔥 修复点：Claim Reward（已重写）
+                            # =======================
+
+                            self.log("🎁 点击 Claim Reward（修复版）")
+
+                            claim_selector = (
+                                '//button[contains(@class,"el-button--success")]'
+                                '//span[contains(text(),"Claim Reward")]'
+                                '/ancestor::button'
+                            )
+
+                            try:
+                                sb.wait_for_element_visible(claim_selector, timeout=25)
+                            except:
+                                pass
+
+                            time.sleep(2)
+
+                            try:
+                                sb.js_click(claim_selector)
+                            except:
+                                try:
+                                    sb.click(claim_selector)
+                                except:
+                                    sb.execute_script("""
+                                        let btns = [...document.querySelectorAll('button.el-button--success')];
+                                        for (let b of btns) {
+                                            if (b.innerText.includes('Claim Reward')) {
+                                                b.click();
+                                                break;
+                                            }
+                                        }
+                                    """)
+
+                            self.log("🎁 Claim Reward 已尝试点击完成")
+
+                            time.sleep(3)
+
+                            remaining_text = self.get_remaining_time(sb)
+
+                            self.log(f"🕒 剩余时间: {remaining_text}")
 
                             self.results.append(
-                                f"⚠️ 未找到 | 账号 {USERNAME} | {AREA}"
+                                f"✅ 成功 | {USERNAME} | {AREA} | {remaining_text}"
                             )
 
-                            continue
+                        else:
+                            self.log("⏳ 冷却中")
 
-                    except Exception as e:
-
-                        self.log(f"⚠️ Extend异常: {e}")
-
-                        self.step_shot(
-                            sb,
-                            USERNAME,
-                            "extend_error"
-                        )
-
-                        self.results.append(
-                            f"❌ Extend异常 | 账号 {USERNAME} | {AREA}"
-                        )
-
-                        continue
-
-                    time.sleep(5)
-
-                    shot = (
-                        f"{self.screenshot_dir}/ok_{USERNAME}.png"
-                    )
-
-                    sb.save_screenshot(shot)
-
-                    self.log(f"✅ 完成 {USERNAME}")
+                    else:
+                        self.log("⚠️ 未找到 Extend")
 
                 except Exception as e:
-
                     self.log(f"❌ 失败 {USERNAME}: {e}")
 
-                    err = (
-                        f"{self.screenshot_dir}/err_{USERNAME}.png"
-                    )
-
-                    try:
-                        sb.save_screenshot(err)
-
-                        self.send_telegram_notify(
-                            f"❌ 失败截图 | {USERNAME}",
-                            err
-                        )
-
-                    except:
-                        pass
-
                     self.results.append(
-                        f"❌ 失败 | {USERNAME} | {NUM} | {AREA} | {e}"
+                        f"❌ 失败 | {USERNAME} | {e}"
                     )
 
-        # ================= 汇总 =================
-        self.log("📊 生成最终汇总...")
+        self.log("📊 汇总")
 
-        summary = "\n".join(self.results)
-
-        final_msg = (
-            "📊 ByteNut 续期汇总\n\n"
-            f"{summary}\n\n"
-            f"总计: {len(self.results)} 条记录"
-        )
+        final_msg = "\n".join(self.results)
 
         self.send_telegram_notify(final_msg)
 
-        self.log("✅ TG汇总已发送")
+        self.log("✅ 完成")
 
 
 # ================= 启动 =================
