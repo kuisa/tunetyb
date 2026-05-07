@@ -183,7 +183,7 @@ class BytenutRenewal:
 
                     time.sleep(5)
 
-                    self.step_shot(sb, USERNAME, "登录页")
+                    #self.step_shot(sb, USERNAME, "登录页")
 
                     # ================= Cookie =================
                     cookie_btns = [
@@ -204,12 +204,12 @@ class BytenutRenewal:
                             except:
                                 pass
 
-                    self.step_shot(sb, USERNAME, "已关闭 Cookie")
+                    #self.step_shot(sb, USERNAME, "已关闭 Cookie")
 
                     sb.type('input[placeholder="Username"]', USERNAME)
                     sb.type('input[placeholder="Password"]', PASSWORD)
 
-                    self.step_shot(sb, USERNAME, "账号密码填写完毕")
+                    #self.step_shot(sb, USERNAME, "账号密码填写完毕")
 
                     sb.click('//button[contains(., "Sign In")]')
                     time.sleep(10)
@@ -219,7 +219,7 @@ class BytenutRenewal:
                     time.sleep(10)
 
                     sb.click('//li[contains(., "RENEW SERVER")]')
-                    self.step_shot(sb, USERNAME, "已点击 RENEW SERVER 按钮进入续费页面")
+                    #self.step_shot(sb, USERNAME, "已点击 RENEW SERVER 按钮进入续费页面")
                     time.sleep(5)
 
                     try:
@@ -242,7 +242,7 @@ class BytenutRenewal:
 
                                 sb.click(extend_selector)
                                 self.log("➡️ 已点击 Extend")
-                                self.step_shot(sb, USERNAME, "已点击 Extend 按钮")
+                                #self.step_shot(sb, USERNAME, "已点击 Extend 按钮")
 
                                 time.sleep(2)
 
@@ -252,7 +252,7 @@ class BytenutRenewal:
 
                                 sb.wait_for_element_visible(watch_ad_bonus_selector, timeout=20)
                                 sb.click(watch_ad_bonus_selector)
-                                self.step_shot(sb, USERNAME, "已点击 Watch Ad +180min 按钮")
+                                #self.step_shot(sb, USERNAME, "已点击 Watch Ad +180min 按钮")
 
                                 time.sleep(3)
 
@@ -262,7 +262,7 @@ class BytenutRenewal:
                                     if(btn) btn.click();
                                 """)
                                 time.sleep(3)
-                                self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
+                                #self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
             
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
@@ -278,7 +278,7 @@ class BytenutRenewal:
                                             break
 
                                 sb.driver.switch_to.window(main_window)
-                                self.step_shot(sb, USERNAME, "已关闭广告页")
+                                #self.step_shot(sb, USERNAME, "已关闭广告页")
 
                                 time.sleep(3)
 
@@ -288,24 +288,36 @@ class BytenutRenewal:
                                 """)
                                 time.sleep(5)
                                 
-                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
+                                #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
-                        self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
+                        #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
 
                         remaining_text = self.get_remaining_time(sb)
 
                         self.results.append(
-                            f"✅ 成功 | {USERNAME} | {AREA} | {remaining_text}"
+                            f"✅ 成功 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                         )
 
+                    else:
+                        self.log("⏳ 冷却中")
+                        # ===== 新增：冷却也获取 =====
+                        time.sleep(2)
+                        remaining_text = self.get_remaining_time(sb)
+                        self.log(f"🕒 剩余时间: {remaining_text}")
+
+                        self.results.append(
+                        f"⏳ 冷却 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                        )
+                        continue
+
                     except Exception as e:
-                        self.log(f"❌ Extend失败 {USERNAME}: {e}")
+                        self.log(f"❌账号 {USERNAME} Extend失败 : {e}")
 
                 except Exception as e:
-                    self.log(f"❌ 账号失败 {USERNAME}: {e}")
+                    self.log(f"❌ 账号 {USERNAME} 续期失败 : {e}")
 
         self.log("📊 生成最终汇总...")
         self.send_telegram_notify("\n".join(self.results))
