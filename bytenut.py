@@ -113,7 +113,7 @@ class BytenutRenewal:
         except Exception as e:
             self.log(f"TG失败: {e}")
 
-    # ================= 新增：步骤截图 =================
+    # ================= 步骤截图 =================
     def step_shot(self, sb, username, step_name):
 
         try:
@@ -355,6 +355,8 @@ class BytenutRenewal:
                                 try:
 
                                     cookie_btns = [
+                                        '//button[contains(., "Continue with Recommended Cookies")]',
+                                        '//button[contains(., "Recommended Cookies")]',
                                         '//button[contains(., "Accept")]',
                                         '//button[contains(., "I Agree")]',
                                         '//button[contains(., "Consent")]',
@@ -373,7 +375,15 @@ class BytenutRenewal:
                                                     "cookie_popup"
                                                 )
 
-                                                sb.click(btn)
+                                                try:
+                                                    sb.scroll_to(btn)
+                                                except:
+                                                    pass
+
+                                                try:
+                                                    sb.click(btn)
+                                                except:
+                                                    sb.js_click(btn)
 
                                                 self.log(
                                                     "🍪 已关闭 Cookie 弹窗"
@@ -438,7 +448,8 @@ class BytenutRenewal:
 
                                 # ===== 原 Watch =====
                                 watch_ad_selector = (
-                                    '//button[contains(., "Watch")]'
+                                    '//div[contains(@class,"swal")]'
+                                    '//button[contains(., "Watch Ad")]'
                                 )
 
                                 self.log("🎬 查找 Watch Ad...")
@@ -462,7 +473,15 @@ class BytenutRenewal:
                                     sb.driver.window_handles
                                 )
 
-                                sb.click(watch_ad_selector)
+                                try:
+                                    sb.scroll_to(watch_ad_selector)
+                                except:
+                                    pass
+
+                                try:
+                                    sb.click(watch_ad_selector)
+                                except:
+                                    sb.js_click(watch_ad_selector)
 
                                 self.log("🖱️ 点击 Watch Ad")
 
