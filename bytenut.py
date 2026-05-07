@@ -80,7 +80,7 @@ class BytenutRenewal:
         except Exception as e:
             self.log(f"TG失败: {e}")
 
-    # ================= 新增：统一获取剩余时间 =================
+    # ================= 获取剩余时间 =================
     def get_remaining_time(self, sb):
         remaining_text = "未知"
         try:
@@ -136,22 +136,43 @@ class BytenutRenewal:
                     self.log("🌍 检测IP...")
                     try:
                         sb.open("https://api.ipify.org?format=json")
-                        ip_val = json.loads(re.search(r'\{.*\}', sb.get_text("body")).group(0)).get("ip", "Unknown")
+                        ip_val = json.loads(
+                            re.search(r'\{.*\}', sb.get_text("body")).group(0)
+                        ).get("ip", "Unknown")
+
                         parts = ip_val.split(".")
                         self.log(f"IP: {parts[0]}.{parts[1]}.***.{parts[-1]}")
+
                     except:
                         self.log("⚠️ IP跳过")
 
                     # ================= 登录 =================
                     self.log("📂 打开登录页")
-                    sb.uc_open_with_reconnect(URL_LOGIN_PANEL, reconnect_time=5)
 
-                    sb.wait_for_element_visible('input[placeholder="Username"]', timeout=25)
-                    sb.type('input[placeholder="Username"]', USERNAME)
-                    sb.type('input[placeholder="Password"]', PASSWORD)
+                    sb.uc_open_with_reconnect(
+                        URL_LOGIN_PANEL,
+                        reconnect_time=5
+                    )
+
+                    sb.wait_for_element_visible(
+                        'input[placeholder="Username"]',
+                        timeout=25
+                    )
+
+                    sb.type(
+                        'input[placeholder="Username"]',
+                        USERNAME
+                    )
+
+                    sb.type(
+                        'input[placeholder="Password"]',
+                        PASSWORD
+                    )
 
                     self.log("🖱️ 登录")
+
                     sb.click('//button[contains(., "Sign In")]')
+
                     time.sleep(10)
 
                     try:
@@ -161,11 +182,16 @@ class BytenutRenewal:
 
                     # ================= 进入服务器 =================
                     self.log("📂 进入服务器页面")
-                    sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
+
+                    sb.uc_open_with_reconnect(
+                        URL_SERVER_PANEL,
+                        reconnect_time=6
+                    )
 
                     time.sleep(10)
 
                     self.log("🖱️ RENEW SERVER")
+
                     sb.click('//li[contains(., "RENEW SERVER")]')
 
                     time.sleep(3)
@@ -184,11 +210,13 @@ class BytenutRenewal:
                     extend_selector = '//button[contains(., "Extend")]'
 
                     try:
+
                         if sb.is_element_present(extend_selector):
 
                             if sb.is_element_enabled(extend_selector):
 
                                 sb.click(extend_selector)
+
                                 self.log("➡️ 已点击 Extend")
 
                                 time.sleep(2)
@@ -200,9 +228,58 @@ class BytenutRenewal:
 
                                 self.log("🎬 查找 Watch Ad +180min...")
 
-                                sb.wait_for_element_visible(watch_ad_bonus_selector, timeout=20)
+                                sb.wait_for_element_visible(
+                                    watch_ad_bonus_selector,
+                                    timeout=20
+                                )
 
-                                sb.click(watch_ad_bonus_selector)
+                                # ===== 新增：处理 Cookie 弹窗 =====
+                                try:
+
+                                    cookie_btns = [
+                                        '//button[contains(., "Accept")]',
+                                        '//button[contains(., "I Agree")]',
+                                        '//button[contains(., "Consent")]',
+                                        '//button[contains(., "Got it")]',
+                                    ]
+
+                                    for btn in cookie_btns:
+
+                                        if sb.is_element_present(btn):
+
+                                            try:
+                                                sb.click(btn)
+
+                                                self.log("🍪 已关闭 Cookie 弹窗")
+
+                                                time.sleep(2)
+
+                                                break
+
+                                            except:
+                                                pass
+
+                                    # 强制隐藏 Cookie 层
+                                    sb.execute_script("""
+                                        let el = document.querySelector('#ez-cookie-dialog-wrapper');
+                                        if (el) {
+                                            el.style.display='none';
+                                        }
+                                    """)
+
+                                except Exception as e:
+                                    self.log(f"⚠️ Cookie处理失败: {e}")
+
+                                # ===== 点击 Watch Ad +180min =====
+                                try:
+                                    sb.scroll_to(watch_ad_bonus_selector)
+                                except:
+                                    pass
+
+                                try:
+                                    sb.click(watch_ad_bonus_selector)
+                                except:
+                                    sb.js_click(watch_ad_bonus_selector)
 
                                 self.log("🖱️ 已点击 Watch Ad +180min")
 
@@ -213,7 +290,10 @@ class BytenutRenewal:
 
                                 self.log("🎬 查找 Watch Ad...")
 
-                                sb.wait_for_element_visible(watch_ad_selector, timeout=15)
+                                sb.wait_for_element_visible(
+                                    watch_ad_selector,
+                                    timeout=15
+                                )
 
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
@@ -227,17 +307,25 @@ class BytenutRenewal:
                                 new_windows = sb.driver.window_handles
 
                                 if len(new_windows) > len(existing_windows):
+
                                     for w in new_windows:
+
                                         if w not in existing_windows:
+
                                             sb.driver.switch_to.window(w)
+
                                             self.log("🌐 切换到广告页")
 
                                             time.sleep(3)
+
                                             sb.driver.close()
+
                                             self.log("❌ 已关闭广告页")
+
                                             break
 
                                 sb.driver.switch_to.window(main_window)
+
                                 self.log("↩️ 返回主页面")
 
                                 # ===== Claim Reward =====
@@ -245,19 +333,27 @@ class BytenutRenewal:
 
                                 claim_selector = '//button[contains(., "Claim")]'
 
-                                sb.wait_for_element_visible(claim_selector, timeout=20)
+                                sb.wait_for_element_visible(
+                                    claim_selector,
+                                    timeout=20
+                                )
 
                                 for _ in range(10):
+
                                     if sb.is_element_enabled(claim_selector):
                                         break
+
                                     time.sleep(1)
 
                                 sb.click(claim_selector)
+
                                 self.log("🎁 已领取奖励")
 
                                 # ===== 获取剩余时间 =====
                                 time.sleep(3)
+
                                 remaining_text = self.get_remaining_time(sb)
+
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
@@ -265,37 +361,45 @@ class BytenutRenewal:
                                 )
 
                             else:
+
                                 self.log("⏳ 冷却中")
 
-                                # ===== 新增：冷却也获取 =====
                                 time.sleep(2)
+
                                 remaining_text = self.get_remaining_time(sb)
+
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
                                 self.results.append(
                                     f"⏳ 冷却 | 账号 {USERNAME} | {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
+
                                 continue
 
                         else:
+
                             self.log("⚠️ 未找到按钮")
 
                             self.results.append(
                                 f"⚠️ 未找到 | 账号 {USERNAME} | {AREA}"
                             )
+
                             continue
 
                     except Exception as e:
+
                         self.log(f"⚠️ Extend异常: {e}")
 
                         self.results.append(
-                            f"❌ Extend异常 | 账号  {USERNAME} | {AREA}"
+                            f"❌ Extend异常 | 账号 {USERNAME} | {AREA}"
                         )
+
                         continue
 
                     time.sleep(5)
 
                     shot = f"{self.screenshot_dir}/ok_{USERNAME}.png"
+
                     sb.save_screenshot(shot)
 
                     self.log(f"✅ 完成 {USERNAME}")
@@ -305,6 +409,7 @@ class BytenutRenewal:
                     self.log(f"❌ 失败 {USERNAME}: {e}")
 
                     err = f"{self.screenshot_dir}/err_{USERNAME}.png"
+
                     try:
                         sb.save_screenshot(err)
                     except:
