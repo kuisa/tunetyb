@@ -301,17 +301,17 @@ class BytenutRenewal:
                             f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                         )
 
-                else:
-                        self.log("⏳ 冷却中")
-                        # ===== 新增：冷却也获取 =====
-                        time.sleep(2)
-                        remaining_text = self.get_remaining_time(sb)
-                        self.log(f"🕒 剩余时间: {remaining_text}")
+                        else:
+                            self.log("⏳ 冷却中")
+                            # ===== 冷却也获取 =====
+                            time.sleep(2)
+                            remaining_text = self.get_remaining_time(sb)
+                            self.log(f"🕒 剩余时间: {remaining_text}")
 
-                        self.results.append(
-                        f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
-                        )
-                        continue
+                            self.results.append(
+                            f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                            )
+                            continue
 
                     except Exception as e:
                         self.log(f"❌账号 {USERNAME} Extend失败 : {e}")
