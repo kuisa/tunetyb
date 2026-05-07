@@ -248,32 +248,7 @@ class BytenutRenewal:
                     
                     self.step_shot(sb, USERNAME, "login_page")
 
-                    sb.wait_for_element_visible(
-                        'input[placeholder="Username"]',
-                        timeout=25
-                    )
-
-                    sb.type(
-                        'input[placeholder="Username"]',
-                        USERNAME
-                    )
-
-                    sb.type(
-                        'input[placeholder="Password"]',
-                        PASSWORD
-                    )
-
-                    self.step_shot(sb, USERNAME, "filled_login")
-
-                    self.log("🖱️ 登录")
-
-                    sb.click('//button[contains(., "Sign In")]')
-
-                    time.sleep(10)
-
-                    self.step_shot(sb, USERNAME, "after_login")
-
-                    # ===== Cookie =====
+                    # ===== Tap Cookie =====
                     try:
                         cookie_btns = [
                              '//button[contains(., "Continue with Recommended Cookies")]',
@@ -330,8 +305,33 @@ class BytenutRenewal:
                     self.step_shot(
                         sb,
                         USERNAME,
-                        "before_watch_ad_bonus_click"
+                        "after_accpet_cookie_tap"
                     )
+
+                    sb.wait_for_element_visible(
+                        'input[placeholder="Username"]',
+                        timeout=25
+                    )
+
+                    sb.type(
+                        'input[placeholder="Username"]',
+                        USERNAME
+                    )
+
+                    sb.type(
+                        'input[placeholder="Password"]',
+                        PASSWORD
+                    )
+
+                    self.step_shot(sb, USERNAME, "filled_login")
+
+                    self.log("🖱️ 登录")
+
+                    sb.click('//button[contains(., "Sign In")]')
+
+                    time.sleep(10)
+
+                    self.step_shot(sb, USERNAME, "after_login")
 
                     # ================= 进入服务器 =================
                     self.log("📂 进入服务器页面")
@@ -448,42 +448,11 @@ class BytenutRenewal:
                                     "after_watch_ad_bonus_click"
                                 )
 
-                                # ===== 原 Watch =====
-                                watch_ad_selector = (
-                                    '//div[contains(@class,"Extending")]'
-                                    '//button[contains(., "Watch Ad")]'
-                                )
-
-                                self.log("🎬 查找 Watch Ad...")
-
-                                sb.wait_for_element_visible(
-                                    watch_ad_selector,
-                                    timeout=15
-                                )
-
-                                self.step_shot(
-                                    sb,
-                                    USERNAME,
-                                    "watch_button_visible"
-                                )
-
-                                main_window = (
-                                    sb.driver.current_window_handle
-                                )
-
-                                existing_windows = (
-                                    sb.driver.window_handles
-                                )
-
-                                try:
-                                    sb.scroll_to(watch_ad_selector)
-                                except:
-                                    pass
-
-                                try:
-                                    sb.click(watch_ad_selector)
-                                except:
-                                    sb.js_click(watch_ad_selector)
+                                # 点击 Watch Ad
+                                sb.execute_script("""
+                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
+                                    if(btn) btn.click();
+                                """)
 
                                 self.log("🖱️ 点击 Watch Ad")
 
