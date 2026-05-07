@@ -229,13 +229,14 @@ class BytenutRenewal:
                         pass
 
                     time.sleep(5)
-                    
+
                     # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
 
                     extend_selector = '//button[contains(., "Extend")]'
 
                     try:
+
                         if sb.is_element_present(extend_selector):
 
                             if sb.is_element_enabled(extend_selector):
@@ -261,9 +262,10 @@ class BytenutRenewal:
                                     var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
                                     if(btn) btn.click();
                                 """)
+
                                 time.sleep(3)
                                 #self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
-            
+
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
 
@@ -286,31 +288,35 @@ class BytenutRenewal:
                                     var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
                                     if(btn) btn.click();
                                 """)
+
                                 time.sleep(5)
-                                
+
                                 #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
 
-                        #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
+                                #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
 
-                        remaining_text = self.get_remaining_time(sb)
+                                remaining_text = self.get_remaining_time(sb)
 
-                        self.results.append(
-                            f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
-                        )
+                                self.results.append(
+                                    f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                                )
 
                         else:
                             self.log("⏳ 冷却中")
+
                             # ===== 冷却也获取 =====
                             time.sleep(2)
+
                             remaining_text = self.get_remaining_time(sb)
                             self.log(f"🕒 剩余时间: {remaining_text}")
 
                             self.results.append(
-                            f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                                f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                             )
+
                             continue
 
                     except Exception as e:
