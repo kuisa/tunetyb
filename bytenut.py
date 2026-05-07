@@ -448,7 +448,7 @@ class BytenutRenewal:
 
                                 # ===== 原 Watch =====
                                 watch_ad_selector = (
-                                    '//div[contains(@class,"swal")]'
+                                    '//div[contains(@class,"Extending")]'
                                     '//button[contains(., "Watch Ad")]'
                                 )
 
