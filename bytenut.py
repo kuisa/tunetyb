@@ -236,6 +236,16 @@ class BytenutRenewal:
                         reconnect_time=5
                     )
 
+                    time.sleep(5)
+                    
+                    try:
+                        sb.uc_gui_click_captcha()
+                        sb.uc_gui_handle_captcha()
+                    except:
+                        pass
+
+                    time.sleep(5)
+                    
                     self.step_shot(sb, USERNAME, "login_page")
 
                     sb.wait_for_element_visible(
