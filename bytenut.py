@@ -239,6 +239,7 @@ class BytenutRenewal:
 
                         if sb.is_element_present(extend_selector):
 
+                            # ================= 可续期 =================
                             if sb.is_element_enabled(extend_selector):
 
                                 sb.click(extend_selector)
@@ -304,20 +305,22 @@ class BytenutRenewal:
                                     f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
 
-                        else:
-                            self.log("⏳ 冷却中")
+                            # ================= 冷却中 =================
+                            else:
 
-                            # ===== 冷却也获取 =====
-                            time.sleep(2)
+                                self.log("⏳ 冷却中")
 
-                            remaining_text = self.get_remaining_time(sb)
-                            self.log(f"🕒 剩余时间: {remaining_text}")
+                                # ===== 冷却也获取 =====
+                                time.sleep(2)
 
-                            self.results.append(
-                                f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
-                            )
+                                remaining_text = self.get_remaining_time(sb)
+                                self.log(f"🕒 剩余时间: {remaining_text}")
 
-                            continue
+                                self.results.append(
+                                    f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
+                                )
+
+                                continue
 
                     except Exception as e:
                         self.log(f"❌账号 {USERNAME} Extend失败 : {e}")
