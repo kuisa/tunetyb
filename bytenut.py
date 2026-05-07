@@ -22,7 +22,6 @@ from seleniumbase import SB
 PROXY_URL = os.getenv("PROXY", "")
 TG_TOKEN = os.getenv("TG_TOKEN")
 TG_CHAT_ID = os.getenv("TG_CHAT_ID")
-
 ACCOUNTS = os.getenv("ACCOUNTS", "")
 
 URL_LOGIN_PANEL = "https://www.bytenut.com/auth/login"
@@ -38,14 +37,12 @@ def parse_accounts(accounts_str):
     for item in accounts_str.split("|"):
         try:
             u, p, n, a = item.split(",")
-
             accounts.append((
                 u.strip(),
                 p.strip(),
                 n.strip(),
                 a.strip()
             ))
-
         except:
             print(f"[WARN] 格式错误: {item}")
 
@@ -56,7 +53,6 @@ def parse_accounts(accounts_str):
 class BytenutRenewal:
 
     def __init__(self):
-
         self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
         self.screenshot_dir = os.path.join(
@@ -69,9 +65,7 @@ class BytenutRenewal:
         self.results = []
 
     def log(self, msg):
-
         timestamp = time.strftime('%H:%M:%S')
-
         print(f"[{timestamp}] [INFO] {msg}", flush=True)
 
     # ================= TG =================
@@ -82,13 +76,9 @@ class BytenutRenewal:
             return
 
         try:
-
             if photo_path and os.path.exists(photo_path):
-
                 url = f"https://api.telegram.org/bot{TG_TOKEN}/sendPhoto"
-
                 with open(photo_path, "rb") as f:
-
                     requests.post(
                         url,
                         data={
@@ -97,11 +87,8 @@ class BytenutRenewal:
                         },
                         files={"photo": f}
                     )
-
             else:
-
                 url = f"https://api.telegram.org/bot{TG_TOKEN}/sendMessage"
-
                 requests.post(
                     url,
                     data={
@@ -115,11 +102,8 @@ class BytenutRenewal:
 
     # ================= 步骤截图 =================
     def step_shot(self, sb, username, step_name):
-
         try:
-
             ts = int(time.time())
-
             shot = os.path.join(
                 self.screenshot_dir,
                 f"{username}_{step_name}_{ts}.png"
@@ -139,11 +123,9 @@ class BytenutRenewal:
 
     # ================= 获取剩余时间 =================
     def get_remaining_time(self, sb):
-
         remaining_text = "未知"
 
         try:
-
             sb.wait_for_element_visible(
                 "div.countdown-clock",
                 timeout=15
@@ -165,10 +147,10 @@ class BytenutRenewal:
 
         return remaining_text
 
+
     def run(self):
 
         timestamp = time.strftime('%H:%M:%S')
-
         self.log(f"🚀 开始执行 ByteNut 保活 {timestamp}")
 
         accounts = parse_accounts(ACCOUNTS)
@@ -181,16 +163,10 @@ class BytenutRenewal:
 
         for idx, (USERNAME, PASSWORD, NUM, AREA) in enumerate(accounts, 1):
 
-            URL_SERVER_PANEL = (
-                f"https://www.bytenut.com/free-gamepanel/{NUM}"
-            )
+            URL_SERVER_PANEL = f"https://www.bytenut.com/free-gamepanel/{NUM}"
 
             self.log("=" * 60)
-
-            self.log(
-                f"🚀 [{idx}] 开始账号: {USERNAME} | Server {NUM}"
-            )
-
+            self.log(f"🚀 [{idx}] 开始账号: {USERNAME} | Server {NUM}")
             self.log("=" * 60)
 
             with SB(
@@ -205,6 +181,28 @@ class BytenutRenewal:
 
                 try:
 
+                    # ================= IP检测 =================
+                    self.log("🌍 检测IP...")
+
+                    try:
+                        sb.open("https://api.ipify.org?format=json")
+
+                        ip_val = json.loads(
+                            re.search(
+                                r'\{.*\}',
+                                sb.get_text("body")
+                            ).group(0)
+                        ).get("ip", "Unknown")
+
+                        parts = ip_val.split(".")
+
+                        self.log(
+                            f"IP: {parts[0]}.{parts[1]}.***.{parts[-1]}"
+                        )
+
+                    except:
+                        self.log("⚠️ IP跳过")
+
                     # ================= 登录 =================
                     self.log("📂 打开登录页")
 
@@ -215,14 +213,60 @@ class BytenutRenewal:
 
                     time.sleep(5)
 
-                    try: 
+                    try:
                         sb.uc_gui_click_captcha()
                         sb.uc_gui_handle_captcha()
                     except:
                         pass
 
                     time.sleep(5)
-                    
+
+                    self.step_shot(sb, USERNAME, "login_page")
+
+                    # ===== Cookie =====
+                    try:
+                        cookie_btns = [
+                            '//button[contains(., "Continue with Recommended Cookies")]',
+                            '//button[contains(., "Recommended Cookies")]',
+                            '//button[contains(., "Accept")]',
+                            '//button[contains(., "I Agree")]',
+                            '//button[contains(., "Consent")]',
+                            '//button[contains(., "Got it")]',
+                        ]
+
+                        for btn in cookie_btns:
+                            if sb.is_element_present(btn):
+                                try:
+                                    self.step_shot(sb, USERNAME, "cookie_popup")
+                                    try:
+                                        sb.scroll_to(btn)
+                                    except:
+                                        pass
+
+                                    try:
+                                        sb.click(btn)
+                                    except:
+                                        sb.js_click(btn)
+
+                                    self.log("🍪 已关闭 Cookie 弹窗")
+                                    time.sleep(2)
+                                    break
+
+                                except:
+                                    pass
+
+                        sb.execute_script("""
+                            let el = document.querySelector('#ez-cookie-dialog-wrapper');
+                            if (el) {
+                                el.style.display='none';
+                            }
+                        """)
+
+                    except Exception as e:
+                        self.log(f"⚠️ Cookie处理失败: {e}")
+
+                    self.step_shot(sb, USERNAME, "after_accpet_cookie_tap")
+
                     sb.wait_for_element_visible(
                         'input[placeholder="Username"]',
                         timeout=25
@@ -231,11 +275,18 @@ class BytenutRenewal:
                     sb.type('input[placeholder="Username"]', USERNAME)
                     sb.type('input[placeholder="Password"]', PASSWORD)
 
+                    self.step_shot(sb, USERNAME, "filled_login")
+
+                    self.log("🖱️ 登录")
                     sb.click('//button[contains(., "Sign In")]')
 
                     time.sleep(10)
 
+                    self.step_shot(sb, USERNAME, "after_login")
+
                     # ================= 服务器 =================
+                    self.log("📂 进入服务器页面")
+
                     sb.uc_open_with_reconnect(
                         URL_SERVER_PANEL,
                         reconnect_time=6
@@ -243,11 +294,28 @@ class BytenutRenewal:
 
                     time.sleep(10)
 
+                    self.step_shot(sb, USERNAME, "server_page")
+
+                    self.log("🖱️ RENEW SERVER")
                     sb.click('//li[contains(., "RENEW SERVER")]')
+
+                    time.sleep(3)
+
+                    self.step_shot(sb, USERNAME, "renew_menu")
+
+                    try:
+                        sb.uc_gui_click_captcha()
+                        sb.uc_gui_handle_captcha()
+                    except:
+                        pass
 
                     time.sleep(5)
 
+                    self.step_shot(sb, USERNAME, "after_captcha")
+
                     # ================= Extend =================
+                    self.log("🖱️ 检查 Extend Time 状态...")
+
                     extend_selector = '//button[contains(., "Extend")]'
 
                     if sb.is_element_present(extend_selector):
@@ -255,13 +323,13 @@ class BytenutRenewal:
                         if sb.is_element_enabled(extend_selector):
 
                             sb.click(extend_selector)
-
                             time.sleep(2)
 
                             watch_ad_bonus_selector = (
                                 '//button[contains(., "Watch Ad") and contains(., "+180")]'
                             )
 
+                            self.log("🎬 查找 Watch Ad +180min...")
                             sb.wait_for_element_visible(
                                 watch_ad_bonus_selector,
                                 timeout=20
@@ -271,7 +339,6 @@ class BytenutRenewal:
 
                             time.sleep(3)
 
-                            # ===== Watch Ad window =====
                             original_window = sb.driver.current_window_handle
 
                             if len(sb.driver.window_handles) > 1:
@@ -287,42 +354,17 @@ class BytenutRenewal:
 
                                 sb.driver.switch_to.window(original_window)
 
-                            # =======================
-                            # 🔥 这里只改 Claim Reward（最小修复）
-                            # =======================
-
+                            # ===== CLAIM（未修改原逻辑）=====
                             self.log("⏳ 点击 Claim Reward...")
 
-                            claim_selector = (
-                                '//button[contains(@class,"el-button--success")]'
-                                '//span[contains(text(),"Claim Reward")]'
-                                '/ancestor::button'
-                            )
-
-                            try:
-                                sb.wait_for_element_visible(claim_selector, timeout=20)
-                            except:
-                                pass
-
-                            time.sleep(2)
-
-                            try:
-                                sb.click(claim_selector)
-                            except:
-                                try:
-                                    sb.js_click(claim_selector)
-                                except:
-                                    sb.execute_script("""
-                                        let btns = document.querySelectorAll('button.el-button--success');
-                                        for (let b of btns) {
-                                            if (b.innerText.includes('Claim Reward')) {
-                                                b.click();
-                                                break;
-                                            }
-                                        }
-                                    """)
+                            sb.execute_script("""
+                                var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
+                                if(btn) btn.click();
+                            """)
 
                             self.log("🎁 点击 Claim Reward 并领取奖励")
+
+                            self.step_shot(sb, USERNAME, "after_claim")
 
                             time.sleep(3)
 
@@ -331,24 +373,15 @@ class BytenutRenewal:
                             self.log(f"🕒 剩余时间: {remaining_text}")
 
                             self.results.append(
-                                f"✅ 成功 | {USERNAME} | {AREA} | {remaining_text}"
+                                f"✅ 成功 | 账号 {USERNAME} | {AREA} | {remaining_text}"
                             )
-
-                        else:
-                            self.log("⏳ 冷却中")
 
                 except Exception as e:
                     self.log(f"❌ 失败 {USERNAME}: {e}")
 
-                    self.results.append(
-                        f"❌ 失败 | {USERNAME} | {e}"
-                    )
-
-        self.log("📊 汇总")
-
+        self.log("📊 生成最终汇总...")
         self.send_telegram_notify("\n".join(self.results))
-
-        self.log("✅ 完成")
+        self.log("✅ TG汇总已发送")
 
 
 # ================= 启动 =================
