@@ -176,6 +176,8 @@ class BytenutRenewal:
                     except:
                         pass
 
+                    time.sleep(5)
+
                     # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
 
@@ -191,16 +193,33 @@ class BytenutRenewal:
 
                                 time.sleep(2)
 
-                                # ===== Watch Ad =====
+                                # ===== 新增：先点 Watch Ad +180min =====
+                                watch_ad_bonus_selector = (
+                                    '//button[contains(., "Watch Ad") and contains(., "+180")]'
+                                )
+
+                                self.log("🎬 查找 Watch Ad +180min...")
+
+                                sb.wait_for_element_visible(watch_ad_bonus_selector, timeout=20)
+
+                                sb.click(watch_ad_bonus_selector)
+
+                                self.log("🖱️ 已点击 Watch Ad +180min")
+
+                                time.sleep(3)
+
+                                # ===== 原有 Watch Ad =====
                                 watch_ad_selector = '//button[contains(., "Watch")]'
 
                                 self.log("🎬 查找 Watch Ad...")
+
                                 sb.wait_for_element_visible(watch_ad_selector, timeout=15)
 
                                 main_window = sb.driver.current_window_handle
                                 existing_windows = sb.driver.window_handles
 
                                 sb.click(watch_ad_selector)
+
                                 self.log("🖱️ 点击 Watch Ad")
 
                                 time.sleep(3)
