@@ -320,7 +320,7 @@ class BytenutRenewal:
 
                                 time.sleep(5)
 
-                                #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
+                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
                                 # ================= 再次进入面板 =================
                                 sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
