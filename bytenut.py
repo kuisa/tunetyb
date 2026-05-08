@@ -101,39 +101,50 @@ class BytenutRenewal:
 
     # ================= 剩余时间 =================
     def get_remaining_time(self, sb):
+
         remaining_text = "未知"
 
         try:
-            # 尝试先用旧版文本方式
-            sb.wait_for_element_visible("div.countdown-clock", timeout=5)
-            time.sleep(1)
-            raw_text = sb.get_text("div.countdown-clock")
-            match = re.search(r"\d{1,2}:\d{2}", raw_text)
-            if match:
-                remaining_text = match.group(0)
-            else:
-                remaining_text = raw_text.strip()
-        except:
-            # 如果文本抓不到，尝试用 SVG 圆环计算
+
+            # 等待剩余时间元素出现
+            sb.wait_for_element_visible(
+                'div.free-countdown-value',
+                timeout=15
+            )
+
+            time.sleep(2)
+
+            remaining_text = sb.get_text(
+                'div.free-countdown-value'
+            ).strip()
+
+            self.log(f"✅ 获取剩余时间成功: {remaining_text}")
+
+        except Exception as e:
+
+            self.log(f"⚠️ 获取剩余时间失败: {e}")
+
+            # ===== 备用JS方案 =====
             try:
-                js = """
-                var c = document.querySelector('circle.clock-progress');
-                if(!c) return null;
-                return {
-                    dasharray: parseFloat(c.getAttribute('stroke-dasharray')),
-                    dashoffset: parseFloat(c.getAttribute('stroke-dashoffset'))
-                };
-                """
-                res = sb.execute_script(js)
-                if res and res['dasharray'] is not None and res['dashoffset'] is not None:
-                    remaining_ratio = 1 - res['dashoffset'] / res['dasharray']
-                    # 假设服务器满时间为180分钟，可根据实际修改
-                    full_minutes = 180
-                    remaining_minutes = int(full_minutes * remaining_ratio)
-                    m, s = divmod(remaining_minutes * 60, 60)
-                    remaining_text = f"{m:02d}:{s:02d}"
-            except Exception as e:
-                self.log(f"⚠️ SVG 获取剩余时间失败: {e}")
+
+                remaining_text = sb.execute_script("""
+                    var el = document.querySelector(
+                        'div.free-countdown-value'
+                    );
+                    return el ? el.innerText.trim() : null;
+                """)
+
+                if remaining_text:
+                    self.log(
+                        f"✅ JS获取剩余时间成功: {remaining_text}"
+                    )
+                else:
+                    remaining_text = "未知"
+
+            except Exception as js_e:
+
+                self.log(f"⚠️ JS获取失败: {js_e}")
+                remaining_text = "未知"
 
         return remaining_text
 
@@ -266,7 +277,7 @@ class BytenutRenewal:
                                 time.sleep(5)
 
                                 watch_ad_bonus_selector = (
-                                    '//button[contains(., "Watch Ad") and contains(., "+180")]'
+                                    '//button[contains(., "Watch Ad")]'
                                 )
 
                                 sb.wait_for_element_visible(watch_ad_bonus_selector, timeout=20)
@@ -311,12 +322,13 @@ class BytenutRenewal:
 
                                 #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
+                                # ================= 再次进入面板 =================
+                                sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
+                                time.sleep(10)
+                                
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
-
                                 #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
-
-                                remaining_text = self.get_remaining_time(sb)
 
                                 self.results.append(
                                     f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
@@ -332,13 +344,13 @@ class BytenutRenewal:
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
-
+                                #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
                                 self.results.append(
                                     f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
 
                                 continue
-
+                                
                     except Exception as e:
                         self.log(f"❌账号 {USERNAME} Extend失败 : {e}")
 
