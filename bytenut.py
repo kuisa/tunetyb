@@ -263,7 +263,7 @@ class BytenutRenewal:
                                 self.log("➡️ 已点击 Extend")
                                 #self.step_shot(sb, USERNAME, "已点击 Extend 按钮")
 
-                                time.sleep(2)
+                                time.sleep(5)
 
                                 watch_ad_bonus_selector = (
                                     '//button[contains(., "Watch Ad") and contains(., "+180")]'
@@ -273,7 +273,7 @@ class BytenutRenewal:
                                 sb.click(watch_ad_bonus_selector)
                                 #self.step_shot(sb, USERNAME, "已点击 Watch Ad +180min 按钮")
 
-                                time.sleep(3)
+                                time.sleep(5)
 
                                 # 点击 Watch Ad
                                 sb.execute_script("""
@@ -281,7 +281,7 @@ class BytenutRenewal:
                                     if(btn) btn.click();
                                 """)
 
-                                time.sleep(3)
+                                time.sleep(5)
                                 #self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
 
                                 main_window = sb.driver.current_window_handle
@@ -300,7 +300,7 @@ class BytenutRenewal:
                                 sb.driver.switch_to.window(main_window)
                                 #self.step_shot(sb, USERNAME, "已关闭广告页")
 
-                                time.sleep(3)
+                                time.sleep(5)
 
                                 sb.execute_script("""
                                     var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
@@ -309,7 +309,7 @@ class BytenutRenewal:
 
                                 time.sleep(5)
 
-                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
+                                #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
