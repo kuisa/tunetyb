@@ -299,9 +299,10 @@ class BytenutRenewal:
                             else:
 
                                 self.log("⏳ 冷却中")
-
-                                # ===== 冷却也获取 =====
-                                time.sleep(2)
+                                # ================= 再次进入服务器面板 =================
+                                sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
+                                time.sleep(10)
+                                self.log("✅ 再次进入服务器面板")
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
