@@ -238,17 +238,20 @@ class BytenutRenewal:
                     sb.type('input[placeholder="Password"]', PASSWORD)
 
                     #self.step_shot(sb, USERNAME, "账号密码填写完毕")
+                    self.log("✅ 账号密码填写完毕")
 
                     sb.click('//button[contains(., "Sign In")]')
                     time.sleep(10)
 
-                    # ================= 服务器 =================
+                    # ================= 进入服务器面板 =================
                     sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
                     time.sleep(10)
+                    self.log("✅ 进入服务器面板")
 
                     sb.click('//li[contains(., "RENEW SERVER")]')
                     #self.step_shot(sb, USERNAME, "已点击 RENEW SERVER 按钮进入续费页面")
                     time.sleep(5)
+                    self.log("✅ 已点击 RENEW SERVER 按钮进入续费页面")
 
                     try:
                         sb.uc_gui_click_captcha()
@@ -257,6 +260,7 @@ class BytenutRenewal:
                         pass
 
                     time.sleep(5)
+                    self.log("✅ 已处理Cloudflare验证")
 
                     # ================= Extend Time =================
                     self.log("🖱️ 检查 Extend Time 状态...")
@@ -271,68 +275,25 @@ class BytenutRenewal:
                             if sb.is_element_enabled(extend_selector):
 
                                 sb.click(extend_selector)
-                                self.log("➡️ 已点击 Extend")
+                                self.log("✅ 已点击 Extend 按钮")
                                 #self.step_shot(sb, USERNAME, "已点击 Extend 按钮")
 
                                 time.sleep(5)
 
-                                watch_ad_bonus_selector = (
-                                    '//button[contains(., "Watch Ad")]'
-                                )
-
-                                sb.wait_for_element_visible(watch_ad_bonus_selector, timeout=20)
-                                sb.click(watch_ad_bonus_selector)
-                                #self.step_shot(sb, USERNAME, "已点击 Watch Ad +180min 按钮")
-
-                                time.sleep(5)
-
-                                # 点击 Watch Ad
-                                sb.execute_script("""
-                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--primary');
-                                    if(btn) btn.click();
-                                """)
-
-                                time.sleep(5)
-                                #self.step_shot(sb, USERNAME, "已点击 Watch Ad 按钮")
-
-                                main_window = sb.driver.current_window_handle
-                                existing_windows = sb.driver.window_handles
-
-                                new_windows = sb.driver.window_handles
-
-                                if len(new_windows) > len(existing_windows):
-                                    for w in new_windows:
-                                        if w not in existing_windows:
-                                            sb.driver.switch_to.window(w)
-                                            time.sleep(3)
-                                            sb.driver.close()
-                                            break
-
-                                sb.driver.switch_to.window(main_window)
-                                #self.step_shot(sb, USERNAME, "已关闭广告页")
-
-                                time.sleep(5)
-
-                                sb.execute_script("""
-                                    var btn = document.querySelector('div.adsterra-rewarded-dialog button.el-button--success');
-                                    if(btn) btn.click();
-                                """)
-
-                                time.sleep(5)
-
-                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
-
-                                # ================= 再次进入面板 =================
+                                # ================= 再次进入服务器面板 =================
                                 sb.uc_open_with_reconnect(URL_SERVER_PANEL, reconnect_time=6)
                                 time.sleep(10)
+                                self.log("✅ 再次进入服务器面板")
                                 
                                 remaining_text = self.get_remaining_time(sb)
+                                self.log("✅ 服务器面板中获取服务器运行剩余时间")
                                 self.log(f"🕒 剩余时间: {remaining_text}")
                                 #self.step_shot(sb, USERNAME, "已记录服务器剩余时间")
 
                                 self.results.append(
                                     f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
+                                self.log(f"✅ 续期成功 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}")
 
                             # ================= 冷却中 =================
                             else:
@@ -348,6 +309,7 @@ class BytenutRenewal:
                                 self.results.append(
                                     f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}"
                                 )
+                                self.log(f"⏳ 冷却 | 账号: {USERNAME} | 服务器区域: {AREA} | 服务器剩余可运行时间: {remaining_text}")
 
                                 continue
                                 
