@@ -309,7 +309,7 @@ class BytenutRenewal:
 
                                 time.sleep(5)
 
-                                #self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
+                                self.step_shot(sb, USERNAME, "已点击 Claim Reward 按钮")
 
                                 remaining_text = self.get_remaining_time(sb)
                                 self.log(f"🕒 剩余时间: {remaining_text}")
