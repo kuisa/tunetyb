@@ -102,36 +102,40 @@ class BytenutRenewal:
     # ================= 剩余时间 =================
     def get_remaining_time(self, sb):
         remaining_text = "未知"
-        total_wait = 15  # 最大等待时间
-        interval = 1     # 每隔1秒检查一次
-        
-        for _ in range(total_wait):
-            try:
-                if sb.is_element_visible("div.countdown-clock"):
-                    raw_text = sb.get_text("div.countdown-clock")
-                    match = re.search(r"\d{1,2}:\d{2}", raw_text)
-                    if match:
-                        remaining_text = match.group(0)
-                    else:
-                        remaining_text = raw_text.strip()
-                    break
-            except Exception:
-                pass
-            time.sleep(interval)
-            
-            if remaining_text == "未知":
-                # 最后尝试直接抓取元素文本（可能不可见，但存在）
-                try:
-                    raw_text = sb.get_text("div.countdown-clock")
-                    match = re.search(r"\d{1,2}:\d{2}", raw_text)
-                    if match:
-                        remaining_text = match.group(0)
-                    else:
-                        remaining_text = raw_text.strip()
-                except Exception:
-                    pass
-            return remaining_text
 
+        try:
+            # 尝试先用旧版文本方式
+            sb.wait_for_element_visible("div.countdown-clock", timeout=5)
+            time.sleep(1)
+            raw_text = sb.get_text("div.countdown-clock")
+            match = re.search(r"\d{1,2}:\d{2}", raw_text)
+            if match:
+                remaining_text = match.group(0)
+            else:
+                remaining_text = raw_text.strip()
+        except:
+            # 如果文本抓不到，尝试用 SVG 圆环计算
+            try:
+                js = """
+                var c = document.querySelector('circle.clock-progress');
+                if(!c) return null;
+                return {
+                    dasharray: parseFloat(c.getAttribute('stroke-dasharray')),
+                    dashoffset: parseFloat(c.getAttribute('stroke-dashoffset'))
+                };
+                """
+                res = sb.execute_script(js)
+                if res and res['dasharray'] is not None and res['dashoffset'] is not None:
+                    remaining_ratio = 1 - res['dashoffset'] / res['dasharray']
+                    # 假设服务器满时间为180分钟，可根据实际修改
+                    full_minutes = 180
+                    remaining_minutes = int(full_minutes * remaining_ratio)
+                    m, s = divmod(remaining_minutes * 60, 60)
+                    remaining_text = f"{m:02d}:{s:02d}"
+            except Exception as e:
+                self.log(f"⚠️ SVG 获取剩余时间失败: {e}")
+
+        return remaining_text
 
     # ================= 主流程 =================
     def run(self):
